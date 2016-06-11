@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 '''
-img = cv2.imread('../Assets/image.png')
+img = cv2.imread('image.png')
 
 # accessing image pixels
 px = img[200, 200]
@@ -46,7 +46,7 @@ cv2.destroyAllWindows()
 
 RED = [255,0,0]
 
-img1 = cv2.imread('../Assets/image.png')
+img1 = cv2.imread('image.png')
 
 replicate = cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_REPLICATE)
 reflect = cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_REFLECT)
