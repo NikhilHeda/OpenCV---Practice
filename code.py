@@ -1,38 +1,35 @@
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 
-img = cv2.imread('dog.jpg',0)
-img2 = img.copy()
-template = cv2.imread('dog_template.jpg',0)
-w, h = template.shape[::-1]
+img = cv2.imread('sudoku.jpg')
+gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
-# All the 6 methods for comparison in a list
-methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
-            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
+edges = cv2.Canny(gray,50,150,apertureSize = 3)
 
-for meth in methods:
-	img = img2.copy()
-	method = eval(meth)
+'''
+lines = cv2.HoughLines(edges,1,np.pi/180,140)
+for line in lines:
+	for rho,theta in line:
+		a = np.cos(theta)
+		b = np.sin(theta)
+		x0 = a*rho
+		y0 = b*rho
+		x1 = int(x0 + 1000*(-b))
+		y1 = int(y0 + 1000*(a))
+		x2 = int(x0 - 1000*(-b))
+		y2 = int(y0 - 1000*(a))
 
-	# Apply template Matching
-	res = cv2.matchTemplate(img,template,method)
-	min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+		cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+'''
 
-	# If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
-	if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
-		top_left = min_loc
-	else:
-		top_left = max_loc
-	
-	bottom_right = (top_left[0] + w, top_left[1] + h)
+minLineLength = 150
+maxLineGap = 10
 
-	cv2.rectangle(img,top_left, bottom_right, 255, 2)
+lines = cv2.HoughLinesP(edges,1,np.pi/180,100,minLineLength,maxLineGap)
+for line in lines:
+	for x1,y1,x2,y2 in line:
+		cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
 
-	plt.subplot(121),plt.imshow(res,cmap = 'gray')
-	plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-	plt.subplot(122),plt.imshow(img,cmap = 'gray')
-	plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-	plt.suptitle(meth)
-
-	plt.show()
+cv2.imshow('window', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
