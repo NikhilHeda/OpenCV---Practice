@@ -1,32 +1,26 @@
-import numpy as np
 import cv2
+import numpy as np
 
-# cv2.getTickCount()
-# cv2.getTickFrequency()
+# Object Tracking
+cap = cv2.VideoCapture(0)
 
-img1 = cv2.imread('image.png')
+while True:
+	_, frame = cap.read()
+	
+	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+	
+	lower_yellow = np.array([20, 0, 0])
+	upper_yellow = np.array([40, 255, 255])
+	
+	mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+	
+	res = cv2.bitwise_and(frame, frame, mask = mask)
+	
+	cv2.imshow('frame', frame)
+	cv2.imshow('mask', mask)
+	cv2.imshow('res', res)
+	k = cv2.waitKey(5)
+	if k == 27:
+		break
 
-e1 = cv2.getTickCount()
-for i in range(5, 49, 2):
-	img1 = cv2.medianBlur(img1, i)
-e2 = cv2.getTickCount()
-print( (e2 - e1) / cv2.getTickFrequency() )
-
-# IPython
-'''
-# check if optimization is enabled
-In [5]: cv2.useOptimized()
-Out[5]: True
-
-In [6]: %timeit res = cv2.medianBlur(img,49)
-10 loops, best of 3: 34.9 ms per loop
-
-# Disable it
-In [7]: cv2.setUseOptimized(False)
-
-In [8]: cv2.useOptimized()
-Out[8]: False
-
-In [9]: %timeit res = cv2.medianBlur(img,49)
-10 loops, best of 3: 64.1 ms per loop
-'''
+cv2.destroyAllWindows()
