@@ -2,42 +2,47 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-img = cv2.imread('opencvLogo.png')
+img = cv2.imread('j.png')
 
-# 2D Convolution (Image Filtering)
-'''
-kernel = np.ones((5,5),np.float32)/25
-dst = cv2.filter2D(img,-1,kernel)
-'''
+# Erosion
+kernel = np.ones((5, 5), np.uint8)
+erosion = cv2.erode(img, kernel, iterations = 1)
 
-# Image Blurring
-# 1. Averaging
-# cv2.blur()
-'''
-dst = cv2.blur(img, (9, 9))
-'''
+# Dilation
+dilation = cv2.dilate(img,kernel,iterations = 1)
 
-# Gaussian Blurring
-# cv2.GaussianBlur()
-# cv2.getGaussianKernel()
-'''
-dst = cv2.GaussianBlur(img, (5, 5), 0)
-'''
+# Opening
+opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
 
-# Median Blurring
-# cv2.medianBlur()
-'''
-dst = cv2.medianBlur(img, 5)
-'''
+# Closing
+closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
 
-# Bilateral Filtering
-# cv2.bilateralFilter()
+# Gradient
+gradient = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
 
-dst = cv2.bilateralFilter(img, 9, 75, 75)
+# Top Hat
+tophat = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, kernel)
 
+# Black Hat
+blackhat = cv2.morphologyEx(img, cv2.MORPH_BLACKHAT, kernel)
 
-plt.subplot(121),plt.imshow(img),plt.title('Input')
-plt.xticks([]), plt.yticks([])
-plt.subplot(122),plt.imshow(dst),plt.title('Output')
-plt.xticks([]), plt.yticks([])
+titles = ['Original Image','Erosion','Dilation','Opening','Closing','Gradient', 'Top Hat', 'Black Hat']
+images = [img, erosion, dilation, opening, closing, gradient, tophat, blackhat]
+
+for i in range(8):
+    plt.subplot(2, 4, i+1),plt.imshow(images[i],'gray')
+    plt.title(titles[i])
+    plt.xticks([]),plt.yticks([])
+
 plt.show()
+
+# Structuring Element
+
+# Rectangular Kernel
+print(cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
+
+# Elliptical Kernel
+print(cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
+
+# Cross-shaped Kernel
+print(cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5)))
