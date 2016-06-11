@@ -1,64 +1,53 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+
+# Image Addition
 '''
-img = cv2.imread('image.png')
+x = np.uint8([250])
+y = np.uint8([10])
+print(cv2.add(x, y))		# 250 + 10 = 260 => 255
+print(x + y)				# 250 + 10 = 260 % 256 => 4
+'''
 
-# accessing image pixels
-px = img[200, 200]
-print(px)
-
-# accessing only blue values
-blue = img[200, 200, 0]
-print(blue)
-
-# modifying one pixel value
-img[200, 200] = 0
-
-# modifying a region of pixels
-img[200:200, 200:200] = 0
-
-# Numpy Indexing : faster
-# Accessing
-print(img.item(20, 20, 2))
-
-# Modifying
-img.itemset((20, 20, 2), 200)
-print(img.item(20, 20, 2))
-
-# Accessing Image properties:
-print("Image Shape :", img.shape)
-print("Image Size :", img.size)
-print("Image Data Type :", img.dtype)
-
-# Region of image
-region = img[200:201, 300:401] = 0
-img = region
-
-imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-plt.imshow(imgRGB)
-plt.xticks([])
-plt.yticks([])
-plt.show()
-
+# Image Blending
+'''
+img1 = cv2.imread('image.png')
+img2 = cv2.imread('opencvLogo.png')
+img1 = cv2.resize(img1, (500, 500), interpolation = cv2.INTER_CUBIC)
+img2 = cv2.resize(img2, (500, 500), interpolation = cv2.INTER_CUBIC)
+dst = cv2.addWeighted(img1, 0.7, img2, 0.3, 0)
+cv2.imshow('window', dst)
+cv2.waitKey(0)
 cv2.destroyAllWindows()
 '''
 
-RED = [255,0,0]
-
+# Bitwise Operators
 img1 = cv2.imread('image.png')
+img2 = cv2.imread('opencvLogo.png')
+img2 = cv2.resize(img2, (100, 100), interpolation = cv2.INTER_CUBIC)
+rows, cols = img2.shape[:2]
+roi = img1[0:rows, 0:cols]
 
-replicate = cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_REPLICATE)
-reflect = cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_REFLECT)
-reflect101 = cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_REFLECT_101)
-wrap = cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_WRAP)
-constant= cv2.copyMakeBorder(img1,20,20,20,20,cv2.BORDER_CONSTANT,value = RED)
+imgray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+ret, mask = cv2.threshold(imgray, 155, 255, cv2.THRESH_BINARY_INV)
+ret, mask_inv = cv2.threshold(imgray, 155, 255, cv2.THRESH_BINARY)
 
-plt.subplot(231),plt.imshow(img1,'gray'),plt.title('ORIGINAL')
-plt.subplot(232),plt.imshow(replicate,'gray'),plt.title('REPLICATE')
-plt.subplot(233),plt.imshow(reflect,'gray'),plt.title('REFLECT')
-plt.subplot(234),plt.imshow(reflect101,'gray'),plt.title('REFLECT_101')
-plt.subplot(235),plt.imshow(wrap,'gray'),plt.title('WRAP')
-plt.subplot(236),plt.imshow(constant,'gray'),plt.title('CONSTANT')
+img1_bg = cv2.bitwise_and(roi, roi, mask = mask_inv)
+img2_fg = cv2.bitwise_and(img2, img2, mask = mask)
+
+dst = cv2.add(img1_bg,img2_fg)
+img1[0:rows, 0:cols ] = dst
+'''
+cv2.imshow('window', dst)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+'''
+plt.subplot(231), plt.imshow(mask), plt.xticks([]), plt.yticks([])
+plt.subplot(232), plt.imshow(mask_inv), plt.xticks([]), plt.yticks([])
+plt.subplot(233), plt.imshow(img1_bg), plt.xticks([]), plt.yticks([])
+plt.subplot(234), plt.imshow(img2_fg), plt.xticks([]), plt.yticks([])
+plt.subplot(235), plt.imshow(dst), plt.xticks([]), plt.yticks([])
+plt.subplot(236), plt.imshow(img1), plt.xticks([]), plt.yticks([])
 
 plt.show()
