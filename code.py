@@ -2,59 +2,115 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-# Image Pyramids
-# cv2.pyrUp()
-# cv2.pyrDown()
+img = cv2.imread('dog.jpg',0)
 
-A = cv2.imread('apple.jpg')
-B = cv2.imread('orange.jpg')
+# Fourier Transform in Numpy
+'''
+# Magnitude Spectrum
+# np.fft.fft2()
+# np.fft.fftshift()
 
-A = cv2.resize(A, (200, 200), interpolation = cv2.INTER_CUBIC)
-B = cv2.resize(B, (200, 200), interpolation = cv2.INTER_CUBIC)
+f = np.fft.fft2(img)
+fshift = np.fft.fftshift(f)
+magnitude_spectrum = 20*np.log(np.abs(fshift))
 
-# generate Gaussian pyramid for A
-G = A.copy()
-gpA = [G]
+plt.subplot(121),plt.imshow(img, cmap = 'gray')
+plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(122),plt.imshow(magnitude_spectrum, cmap = 'gray')
+plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+plt.show()
+
+# Inverse Shift and Inverse FFT
+# np.fft.ifft2()
+# np.fft.ifftshift()
+
+rows, cols = img.shape
+crow,ccol = rows/2 , cols/2
+fshift[crow-30:crow+30, ccol-30:ccol+30] = 0
+f_ishift = np.fft.ifftshift(fshift)
+img_back = np.fft.ifft2(f_ishift)
+img_back = np.abs(img_back)
+
+plt.subplot(131),plt.imshow(img, cmap = 'gray')
+plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(132),plt.imshow(img_back, cmap = 'gray')
+plt.title('Image after High Pass Filtering'), plt.xticks([]), plt.yticks([])
+plt.subplot(133),plt.imshow(img_back)
+plt.title('Result in JET'), plt.xticks([]), plt.yticks([])
+
+plt.show()
+'''
+
+# Fourier Transform in OpenCV
+# Magnitude Spectrum
+# cv2.dft()
+'''
+dft = cv2.dft(np.float32(img), flags = cv2.DFT_COMPLEX_OUTPUT)
+dft_shift = np.fft.fftshift(dft)
+
+magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1]))
+
+plt.subplot(121),plt.imshow(img, cmap = 'gray')
+plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(122),plt.imshow(magnitude_spectrum, cmap = 'gray')
+plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+plt.show()
+
+rows, cols = img.shape
+crow,ccol = rows/2 , cols/2
+
+# create a mask first, center square is 1, remaining all zeros
+mask = np.zeros((rows,cols,2),np.uint8)
+mask[crow-30:crow+30, ccol-30:ccol+30] = 1
+
+# apply mask and inverse DFT
+fshift = dft_shift*mask
+f_ishift = np.fft.ifftshift(fshift)
+img_back = cv2.idft(f_ishift)
+img_back = cv2.magnitude(img_back[:,:,0],img_back[:,:,1])
+
+plt.subplot(121),plt.imshow(img, cmap = 'gray')
+plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+plt.subplot(122),plt.imshow(img_back, cmap = 'gray')
+plt.title('Output Spectrum'), plt.xticks([]), plt.yticks([])
+plt.show()
+'''
+
+# Why Laplacian is a high pass filter
+# simple averaging filter without scaling parameter
+mean_filter = np.ones((3,3))
+
+# creating a guassian filter
+x = cv2.getGaussianKernel(5,10)
+gaussian = x*x.T
+
+# different edge detecting filters
+# scharr in x-direction
+scharr = np.array([[-3, 0, 3],
+                   [-10,0,10],
+                   [-3, 0, 3]])
+# sobel in x direction
+sobel_x= np.array([[-1, 0, 1],
+                   [-2, 0, 2],
+                   [-1, 0, 1]])
+# sobel in y direction
+sobel_y= np.array([[-1,-2,-1],
+                   [0, 0, 0],
+                   [1, 2, 1]])
+# laplacian
+laplacian=np.array([[0, 1, 0],
+                    [1,-4, 1],
+                    [0, 1, 0]])
+
+filters = [mean_filter, gaussian, laplacian, sobel_x, sobel_y, scharr]
+filter_name = ['mean_filter', 'gaussian','laplacian', 'sobel_x', \
+                'sobel_y', 'scharr_x']
+fft_filters = [np.fft.fft2(x) for x in filters]
+fft_shift = [np.fft.fftshift(y) for y in fft_filters]
+mag_spectrum = [np.log(np.abs(z)+1) for z in fft_shift]
+
 for i in range(6):
-    G = cv2.pyrDown(G)
-    gpA.append(G)
+    plt.subplot(2,3,i+1),plt.imshow(mag_spectrum[i],cmap = 'gray')
+    plt.title(filter_name[i]), plt.xticks([]), plt.yticks([])
 
-# generate Gaussian pyramid for B
-G = B.copy()
-gpB = [G]
-for i in range(6):
-    G = cv2.pyrDown(G)
-    gpB.append(G)
-
-# generate Laplacian Pyramid for A
-lpA = [gpA[5]]
-for i in range(5, 0, -1):
-    GE = cv2.pyrUp(gpA[i])
-    L = cv2.subtract(gpA[i - 1],GE)
-    lpA.append(L)
-
-# generate Laplacian Pyramid for B
-lpB = [gpB[5]]
-for i in range(5,0,-1):
-    GE = cv2.pyrUp(gpB[i])
-    L = cv2.subtract(gpB[i-1],GE)
-    lpB.append(L)
-
-# Now add left and right halves of images in each level
-LS = []
-for la,lb in zip(lpA,lpB):
-    rows,cols,dpt = la.shape
-    ls = np.hstack((la[:,0:cols/2], lb[:,cols/2:]))
-    LS.append(ls)
-
-# now reconstruct
-ls_ = LS[0]
-for i in range(1,6):
-    ls_ = cv2.pyrUp(ls_)
-    ls_ = cv2.add(ls_, LS[i])
-
-# image with direct connecting each half
-real = np.hstack((A[:,:cols/2],B[:,cols/2:]))
-
-cv2.imwrite('Pyramid_blending2.jpg',ls_)
-cv2.imwrite('Direct_blending.jpg',real)
+plt.show()
