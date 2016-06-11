@@ -1,94 +1,108 @@
 import numpy as np
 import cv2
 
-# cv2.imread()
-'''
-imgRGB = cv2.imread('image.png', -1) # Default
-imgGRAY = cv2.imread('image.png', 0)
-imgALPHA = cv2.imread('image.png', 1)
-'''
+# Playing Video from Camera
 
-# cv2.imshow()
-# cv2.waitKey()
-# cv2.destroyAllWindows()
-# cv2.destroyWindow()
-'''
-imgRGB = cv2.imread('image.png', -1) # Default
-imgGRAY = cv2.imread('image.png', 0)
-imgALPHA = cv2.imread('image.png', 1)
-cv2.imshow('Color Image', imgRGB)
-cv2.imshow('Grayscale Image', imgGRAY)
-cv2.imshow('Alpha Image', imgALPHA)
+# cv2.VideoCapture()
+# cv2.cvtColor()
 
-cv2.waitKey(1000) # Indefinitely wait for a keyboard event
-# cv2.destroyAllWindows()
-cv2.destroyWindow('Alpha Image') 
+# VideoCapture Object methods : 
+# isOpened()
+# open()
+# read()
+# release()
 '''
+cap = cv2.VideoCapture(0) # 0, -1 : for one camera
 
-#cv2.namedWindow()
-'''
-imgRGB = cv2.imread('image.png')
-cv2.namedWindow('Color Image', cv2.WINDOW_NORMAL) # Resizeable
-# cv2.namedWindow('Color Image', cv2.WINDOW_AUTOSIZE) # Not Resizeable - Default
-cv2.imshow('Color Image', imgRGB)
-cv2.waitKey(0)
+while True:
+	if not cap.isOpened():
+		cap.open()
+	
+	ret, frame = cap.read()
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY);
+	cv2.imshow('frame', gray)
+	
+	# if cv2.waitKey(1) & 0xFF == ord('q'):
+	#	break
+	# or
+	
+	k = cv2.waitKey(1) # 1 millisecod wait to display image, not 0 because 0 is indefinite wait.
+	if  k == ord('q'):
+		break
+
+cap.release()
 cv2.destroyAllWindows()
 '''
 
-# cv2.imwrite()
+# VideoCapture Object methods : 
+# get()
+# set()
 '''
-imgGRAY = cv2.imread('image.png', 0)
-cv2.imwrite('saved_image.png', imgGRAY);
-'''
+cap = cv2.VideoCapture(0)
 
-# Summary
-'''
-imgGRAY = cv2.imread('image.png', 0)
-cv2.imshow('Display Image', imgGRAY)
-k = cv2.waitKey(0)
-if k == 27:		# if 'esc' is pressed quit without saving
-	cv2.destroyAllWindows()
-elif k == ord('s'): # else if 's' is pressed : save the image.
-	cv2.imwrite('saved_image.png', imgGRAY)
-	cv2.destroyAllWindows()
-'''
-
-# using matplotlib
-
-# Displaying grayscale image
-'''
-import matplotlib.pyplot as plt
-
-img = cv2.imread('image.png', 0)
-plt.imshow(img, cmap = 'gray', interpolation = 'bicubic')
-plt.xticks([])
-plt.yticks([])
-plt.show()
-'''
-
-# Displaying color image - 1st approach
-'''
-import matplotlib.pyplot as plt
-
-def display_image(image):
-	plt.imshow(image, interpolation = 'bicubic')
-	plt.xticks([])
-	plt.yticks([])
-	plt.show()
+while cap.isOpened:
 	
-imgBGR = cv2.imread('image.png')
-(B, G, R) = cv2.split(imgBGR)
-imgRGB = cv2.merge([R, G, B])
-display_image(imgBGR)
-display_image(imgRGB)
+	ret, frame = cap.read()
+	
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY);
+	
+	ret = cap.set(3, 320)	# frame width
+	ret = cap.set(4, 240) # frame height
+	
+	cv2.imshow('frame', gray)
+	
+	k = cv2.waitKey(1)
+	if  k == ord('q'):
+		break
+
+cap.release()
+cv2.destroyAllWindows()
 '''
 
-# Displaying color image - 2nd approach
-import matplotlib.pyplot as plt
+# Playing Video from file
+'''
+cap = cv2.VideoCapture('video.mp4')
 
-imgBGR = cv2.imread('image.png')
-imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
-plt.imshow(imgRGB, interpolation = 'bicubic')
-plt.xticks([])
-plt.yticks([])
-plt.show()
+while cap.isOpened:
+	
+	ret, frame = cap.read()
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY);
+	cv2.imshow('frame', gray)
+	
+	k = cv2.waitKey(25)
+	if  k == ord('q'):
+		break
+
+cap.release()
+cv2.destroyAllWindows()
+'''
+
+# Saving a Video
+
+# cv2.VideoWriter()
+# cv2.VideoWriter_fourcc()
+# cv2.flip()
+
+# VideoWriter Object methods : 
+# write()
+
+cap = cv2.VideoCapture(0)
+
+fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+out = cv2.VideoWriter('saved_video.mp4', fourcc, 20.0, (640, 480) )
+
+while cap.isOpened():
+	ret, frame = cap.read();
+	if ret:
+		frame = cv2.flip(frame, 1) # 1 : flip horizontally; 0 : flip vertically
+		cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+		cv2.imshow('frame',frame)
+		out.write(frame)
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+	else:
+		break
+
+cap.release()
+out.release()
+cv2.destroyAllWindows()
