@@ -2,47 +2,19 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-img = cv2.imread('j.png')
+img = cv2.imread('image.png', 0)
 
-# Erosion
-kernel = np.ones((5, 5), np.uint8)
-erosion = cv2.erode(img, kernel, iterations = 1)
+laplacian = cv2.Laplacian(img, cv2.CV_64F)
+sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=5)
+sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5)
 
-# Dilation
-dilation = cv2.dilate(img,kernel,iterations = 1)
-
-# Opening
-opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-
-# Closing
-closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
-
-# Gradient
-gradient = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
-
-# Top Hat
-tophat = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, kernel)
-
-# Black Hat
-blackhat = cv2.morphologyEx(img, cv2.MORPH_BLACKHAT, kernel)
-
-titles = ['Original Image','Erosion','Dilation','Opening','Closing','Gradient', 'Top Hat', 'Black Hat']
-images = [img, erosion, dilation, opening, closing, gradient, tophat, blackhat]
-
-for i in range(8):
-    plt.subplot(2, 4, i+1),plt.imshow(images[i],'gray')
-    plt.title(titles[i])
-    plt.xticks([]),plt.yticks([])
+plt.subplot(2, 2, 1), plt.imshow(img, cmap = 'gray')
+plt.title('Original'), plt.xticks([]), plt.yticks([])
+plt.subplot(2, 2, 2), plt.imshow(laplacian, cmap = 'gray')
+plt.title('Laplacian'), plt.xticks([]), plt.yticks([])
+plt.subplot(2, 2, 3), plt.imshow(sobelx, cmap = 'gray')
+plt.title('Sobel X'), plt.xticks([]), plt.yticks([])
+plt.subplot(2, 2, 4), plt.imshow(sobely, cmap = 'gray')
+plt.title('Sobel Y'), plt.xticks([]), plt.yticks([])
 
 plt.show()
-
-# Structuring Element
-
-# Rectangular Kernel
-print(cv2.getStructuringElement(cv2.MORPH_RECT,(5,5)))
-
-# Elliptical Kernel
-print(cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
-
-# Cross-shaped Kernel
-print(cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5)))
